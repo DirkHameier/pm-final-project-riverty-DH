@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set up a plan – Prototype</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --text: #1d2433;
+    --muted: #5b6475;
+    --brand: #1c5d4a;
+    --brand-dark: #14463a;
+    --line: #d3d8e0;
+    --soft: #e8f2ee;
+    --error: #b3261e;
+    --warn: #fff4d6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  .app {
+    max-width: 480px;           /* centred on screens wider than 768px */
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--card);
+  }
+  @media (min-width: 769px) {
+    .app { margin-top: 24px; min-height: 0; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+  }
+  header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    font-weight: 700;
+    color: var(--brand);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+  }
+  header span { font-weight: 400; color: var(--muted); font-size: 13px; }
+  main { padding: 14px 16px 20px; }
+  h1 { font-size: 20px; margin: 0 0 8px; line-height: 1.25; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .summary {
+    background: var(--soft);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 10px 0 14px;
+  }
+  .summary .amount { font-size: 26px; font-weight: 700; }
+  .summary .meta { color: var(--muted); font-size: 14px; }
+
+  .next { color: var(--muted); font-size: 14px; margin: 10px 0 0; }
+
+  label { display: block; font-weight: 600; margin-bottom: 4px; }
+  .helper { color: var(--muted); font-size: 14px; margin: 0 0 6px; }
+
+  .explainer {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin: 0 0 12px;
+    overflow: hidden;
+  }
+  .explainer button.toggle {
+    width: 100%;
+    text-align: left;
+    background: var(--soft);
+    border: 0;
+    padding: 10px 12px;
+    font: inherit;
+    font-weight: 700;
+    color: var(--brand-dark);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 44px;
+  }
+  .explainer .body { padding: 10px 12px; font-size: 15px; }
+  .explainer .body[hidden] { display: none; }
+
+  .input-wrap { display: flex; align-items: center; gap: 8px; }
+  .input-wrap .cur { font-size: 18px; font-weight: 600; }
+  input[type="text"] {
+    flex: 1;
+    font: inherit;
+    font-size: 18px;
+    padding: 10px 12px;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    min-height: 48px;
+    width: 100%;
+  }
+  input[type="text"]:focus { outline: 3px solid #9cc9ba; border-color: var(--brand); }
+  input.invalid { border-color: var(--error); }
+
+  .msg { font-size: 14px; margin: 6px 0 0; min-height: 0; }
+  .msg.error { color: var(--error); font-weight: 600; }
+  .msg.note { color: var(--muted); }
+
+  .datause {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 10px 0 12px;
+  }
+  .tbc {
+    background: var(--warn);
+    padding: 0 4px;
+    border-radius: 3px;
+    color: #6b4e00;
+    font-weight: 600;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    font: inherit;
+    font-weight: 700;
+    background: var(--brand);
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 48px;
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--brand-dark); }
+  .btn.secondary {
+    background: #fff;
+    color: var(--brand);
+    border: 2px solid var(--brand);
+  }
+  .btn:focus-visible, .linkbtn:focus-visible, .toggle:focus-visible {
+    outline: 3px solid #9cc9ba; outline-offset: 2px;
+  }
+  .linkbtn {
+    background: none; border: 0; padding: 8px 0;
+    font: inherit; color: var(--brand); text-decoration: underline;
+    cursor: pointer; min-height: 40px;
+  }
+
+  .softcheck {
+    background: var(--warn);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 10px 0 0;
+  }
+  .softcheck p { margin: 0 0 8px; font-weight: 600; }
+  .softcheck .row { display: flex; gap: 8px; }
+  .softcheck .row .btn { padding: 8px; min-height: 44px; }
+
+  .help { margin-top: 8px; font-size: 14px; }
+  .help .info { color: var(--muted); margin: 2px 0 0; }
+
+  .confirm-box {
+    background: var(--soft);
+    border-radius: 10px;
+    padding: 14px;
+    margin: 10px 0;
+  }
+  .confirm-box .big { font-size: 24px; font-weight: 700; }
+  .proto {
+    font-size: 12px; color: var(--muted); text-align: center;
+    padding: 10px 16px 16px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>Riverty <span>Prototype · no data stored</span></header>
+  <main>
+
+    <!-- Screen 1: Entry point -->
+    <section class="screen active" id="s1" aria-labelledby="t1">
+      <h1 id="t1">Your open balance</h1>
+      <div class="summary">
+        <div class="amount">€ 1,240.00</div>
+        <div class="meta">2 open claims · sample data</div>
+      </div>
+      <p>Cannot pay it all at once? We can look for a plan that fits you.</p>
+      <button class="btn" id="startBtn" type="button">Set up a plan</button>
+      <p class="next">Next: 2 questions about your income</p>
+    </section>
+
+    <!-- Screen 2: Income question -->
+    <section class="screen" id="s2" aria-labelledby="t2">
+      <label for="income" id="t2">Typical monthly net income (€)</label>
+      <p class="helper" id="helper">If your pay changes, enter a normal month.</p>
+
+      <div class="explainer">
+        <button type="button" class="toggle" id="toggleBtn" aria-expanded="true" aria-controls="explBody">
+          <span>Why do we ask?</span><span id="chev" aria-hidden="true">▲</span>
+        </button>
+        <div class="body" id="explBody">
+          <span id="explText">We ask about your income to find a plan that fits your life. Enter a normal month. If your pay changes, use a typical month, not your best or worst one. Your answer is not a test, so a rough number is fine.</span>
+        </div>
+      </div>
+
+      <div class="input-wrap">
+        <span class="cur" aria-hidden="true">€</span>
+        <input type="text" id="income" inputmode="decimal" autocomplete="off"
+               aria-describedby="helper msg" placeholder="e.g. 1450">
+      </div>
+      <p class="msg" id="msg" role="alert" aria-live="polite"></p>
+
+      <div class="softcheck" id="softcheck" hidden>
+        <p>Is this your monthly net income?</p>
+        <div class="row">
+          <button type="button" class="btn" id="confirmBtn">Confirm</button>
+          <button type="button" class="btn secondary" id="changeBtn">Change</button>
+        </div>
+      </div>
+
+      <p class="datause" id="datause">
+        We use your answer only to find a plan that fits you.
+        Kept for: <span class="tbc">[to be confirmed by compliance]</span>
+      </p>
+
+      <button class="btn" type="button" id="continueBtn">Continue</button>
+
+      <div class="help">
+        <button type="button" class="linkbtn" id="agentBtn">Questions? Talk to an agent</button>
+        <p class="info" id="agentInfo" hidden>Prototype: in the live portal, this opens contact options. You can continue at any time.</p>
+      </div>
+    </section>
+
+    <!-- Screen 3: Confirmation -->
+    <section class="screen" id="s3" aria-labelledby="t3">
+      <h1 id="t3">Thank you, we have your answer</h1>
+      <div class="confirm-box">
+        <div class="meta">Typical monthly net income</div>
+        <div class="big" id="summaryAmount">€ 0</div>
+      </div>
+      <button type="button" class="linkbtn" id="editBtn">Change my answer</button>
+      <p class="next">Next: your plan options</p>
+      <div class="help">
+        <button type="button" class="linkbtn" id="agentBtn2">Questions? Talk to an agent</button>
+      </div>
+    </section>
+
+  </main>
+  <div class="proto">Prototype for testing. No data is saved or sent.</div>
+</div>
+
+<script>
+(function () {
+  var MAX_SOFT = 20000;
+  var value = null;        // kept in memory only, never stored
+  var softConfirmed = false;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var screens = ["s1", "s2", "s3"];
+
+  function show(id) {
+    screens.forEach(function (s) { $(s).classList.toggle("active", s === id); });
+    window.scrollTo(0, 0);
+    var target = id === "s2" ? $("income") : (id === "s3" ? $("t3") : $("t1"));
+    if (id === "s3") { target.setAttribute("tabindex", "-1"); }
+    if (id === "s1") { target.setAttribute("tabindex", "-1"); }
+    target.focus({ preventScroll: true });
+  }
+
+  function setMsg(text, type) {
+    var m = $("msg");
+    m.textContent = text || "";
+    m.className = "msg" + (type ? " " + type : "");
+    $("income").classList.toggle("invalid", type === "error");
+  }
+
+  function formatEuro(n) {
+    return "€ " + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function resetSoft() {
+    softConfirmed = false;
+    $("softcheck").hidden = true;
+  }
+
+  // Parse: digits with optional decimal part. Rejects text, negatives, empty.
+  function parseAmount(raw) {
+    var t = raw.trim().replace(/\s/g, "");
+    if (t === "") return { err: "empty" };
+    if (!/^\d+([.,]\d{1,2})?$/.test(t)) return { err: "format" };
+    return { n: parseFloat(t.replace(",", ".")) };
+  }
+
+  function submit() {
+    var r = parseAmount($("income").value);
+    resetSoft();
+    if (r.err === "empty") {
+      setMsg("Please enter an amount. A typical month is fine.", "error");
+      $("income").focus();
+      return;
+    }
+    if (r.err === "format") {
+      setMsg("Use numbers only, for example 1450.", "error");
+      $("income").focus();
+      return;
+    }
+    if (r.n === 0) {
+      setMsg("Enter 0 only if you have no income.", "note");
+      finish(r.n);
+      return;
+    }
+    if (r.n > MAX_SOFT) {
+      setMsg("", null);
+      $("softcheck").hidden = false;
+      $("confirmBtn").focus();
+      pendingValue = r.n;
+      return;
+    }
+    setMsg("", null);
+    finish(r.n);
+  }
+  var pendingValue = null;
+
+  function finish(n) {
+    value = n;
+    $("summaryAmount").textContent = formatEuro(n);
+    show("s3");
+  }
+
+  // Events
+  $("startBtn").addEventListener("click", function () {
+    // Browser back / fresh visit: empty field, no error
+    $("income").value = "";
+    setMsg("", null);
+    resetSoft();
+    show("s2");
+  });
+
+  $("toggleBtn").addEventListener("click", function () {
+    var open = $("toggleBtn").getAttribute("aria-expanded") === "true";
+    $("toggleBtn").setAttribute("aria-expanded", String(!open));
+    $("explBody").hidden = open;
+    $("chev").textContent = open ? "▼" : "▲";
+  });
+
+  $("continueBtn").addEventListener("click", submit);
+  $("income").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); submit(); }
+  });
+  $("income").addEventListener("input", function () {
+    if ($("msg").classList.contains("error")) setMsg("", null);
+    resetSoft();
+  });
+
+  $("confirmBtn").addEventListener("click", function () {
+    softConfirmed = true;
+    $("softcheck").hidden = true;
+    finish(pendingValue);
+  });
+  $("changeBtn").addEventListener("click", function () {
+    $("softcheck").hidden = true;
+    $("income").focus();
+    $("income").select();
+  });
+
+  $("editBtn").addEventListener("click", function () {
+    show("s2");
+    $("income").value = value === null ? "" : String(value);
+    setMsg("", null);
+    resetSoft();
+    $("income").focus();
+  });
+
+  function agentToggle() {
+    var i = $("agentInfo");
+    i.hidden = !i.hidden;
+  }
+  $("agentBtn").addEventListener("click", agentToggle);
+  $("agentBtn2").addEventListener("click", function () {
+    alert("Prototype: in the live portal, this opens contact options.");
+  });
+})();
+</script>
+</body>
+</html>
