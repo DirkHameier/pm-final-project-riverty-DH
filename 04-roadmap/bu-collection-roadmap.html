@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BU Collection roadmap: affordable instalment plan, digital first</title>
+<style>
+  :root {
+    --bg: #eef1f6;
+    --surface: #ffffff;
+    --ink: #101a33;
+    --ink-soft: #4a5570;
+    --line: #d5dbe7;
+    --now: #d6336c;
+    --next: #2455d6;
+    --later: #7a8499;
+    --cut: #8a1f2d;
+    --qw: #17724f;
+    --qw-bg: #def3ea;
+    --mp: #1f48b8;
+    --mp-bg: #e0e8fb;
+    --fi: #8a5a00;
+    --fi-bg: #fbeccb;
+    --ts: #a52a38;
+    --ts-bg: #f9dde0;
+    --radius: 10px;
+    --font: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  header { display: grid; gap: 20px; margin-bottom: 28px; }
+  .brandline { font-size: 15px; font-weight: 600; color: var(--ink-soft); }
+  h1 {
+    margin: 0;
+    font-size: clamp(28px, 4.2vw, 46px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    max-width: 22ch;
+  }
+  .anchors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .anchors li {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+  .anchors b { display: block; font-size: 13px; color: var(--ink-soft); font-weight: 600; margin-bottom: 2px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    margin: 0 0 20px;
+  }
+  .toolbar span.label { font-size: 14px; font-weight: 600; color: var(--ink-soft); margin-right: 4px; }
+  .chip {
+    font: inherit; font-size: 14px; font-weight: 600;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .chip:focus-visible, .card:focus-visible, .cutitem:focus-visible { outline: 3px solid #f5a524; outline-offset: 2px; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+  .lane {
+    background: #e3e8f1;
+    border-radius: 14px;
+    padding: 0 14px 14px;
+    border-top: 6px solid var(--c);
+  }
+  .lane.now { --c: var(--now); }
+  .lane.next { --c: var(--next); }
+  .lane.later { --c: var(--later); }
+  .lane h2 { margin: 16px 0 2px; font-size: 22px; letter-spacing: -0.01em; }
+  .lane .sub { margin: 0 0 14px; font-size: 14px; color: var(--ink-soft); }
+  .stack { display: grid; gap: 12px; }
+
+  .card {
+    all: unset;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 14px 12px;
+    cursor: pointer;
+    transition: opacity .2s ease, border-color .2s ease;
+  }
+  .card:hover { border-color: var(--c, var(--ink-soft)); }
+  .lane.now .card { --c: var(--now); }
+  .lane.next .card { --c: var(--next); }
+  .lane.later .card { --c: var(--later); }
+  .card.dim { opacity: .28; }
+  .card .top { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+  .card .id { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .card h3 { margin: 2px 0 6px; font-size: 17px; line-height: 1.25; font-weight: 700; }
+  .card p.why { margin: 0 0 10px; font-size: 14px; color: var(--ink-soft); }
+  .badge {
+    font-size: 12.5px; font-weight: 700; border-radius: 6px; padding: 3px 9px; white-space: nowrap;
+  }
+  .badge.qw { background: var(--qw-bg); color: var(--qw); }
+  .badge.mp { background: var(--mp-bg); color: var(--mp); }
+  .badge.fi { background: var(--fi-bg); color: var(--fi); }
+  .badge.ts { background: var(--ts-bg); color: var(--ts); }
+
+  .scores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .meter { font-size: 12.5px; color: var(--ink-soft); }
+  .meter .bar { display: flex; gap: 3px; margin-top: 3px; }
+  .meter .bar span { height: 6px; flex: 1; border-radius: 3px; background: var(--line); }
+  .meter .bar span.on { background: var(--ink); }
+  .meter.effort .bar span.on { background: #6b7690; }
+
+  .detail { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 13.5px; }
+  .card[aria-expanded="true"] .detail { display: block; }
+  .detail b { display: block; font-size: 12.5px; color: var(--ink-soft); margin: 8px 0 1px; }
+  .detail b:first-child { margin-top: 0; }
+  .hint { margin: 10px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+
+  .cutlist {
+    margin-top: 28px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--cut);
+    border-radius: 14px;
+    padding: 6px 18px 18px;
+  }
+  .cutlist h2 { margin: 14px 0 2px; font-size: 22px; }
+  .cutlist .sub { margin: 0 0 14px; font-size: 14px; color: var(--ink-soft); }
+  #cuts { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cutitem {
+    all: unset; display: block; box-sizing: border-box; width: 100%;
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; cursor: pointer;
+    background: #fbf3f4;
+  }
+  .cutitem h3 { margin: 2px 0 6px; font-size: 17px; text-decoration: line-through; text-decoration-color: var(--cut); text-decoration-thickness: 2px; }
+  .cutitem p { margin: 0 0 8px; font-size: 14px; color: var(--ink-soft); }
+  .cutitem .detail { display: none; }
+  .cutitem[aria-expanded="true"] .detail { display: block; }
+
+  footer { margin-top: 28px; font-size: 13px; color: var(--ink-soft); }
+
+  @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brandline">BU Collection · Team: 1 PM, 1 designer, 3 engineers, 1 data analyst</div>
+    <h1>Affordable instalment plan, digital first (Germany pilot)</h1>
+    <ul class="anchors">
+      <li><b>Persona</b>Mara, 38, shift worker with two open claims, on her phone</li>
+      <li><b>Primary metric</b>Self-Service Rate for plans, baseline 34.7%</li>
+      <li><b>Moment of misery</b>She cannot tell if a plan is affordable, so she calls an agent</li>
+      <li><b>Guardrail</b>Missed payments within 60 days stay at or below 19.0%</li>
+    </ul>
+  </header>
+
+  <div class="toolbar" role="group" aria-label="Filter cards by quadrant">
+    <span class="label">Show only</span>
+    <button class="chip" data-q="qw" aria-pressed="false"><i style="background:var(--qw)"></i>Quick Win</button>
+    <button class="chip" data-q="mp" aria-pressed="false"><i style="background:var(--mp)"></i>Major Project</button>
+    <button class="chip" data-q="fi" aria-pressed="false"><i style="background:var(--fi)"></i>Fill-In</button>
+    <button class="chip" data-q="ts" aria-pressed="false"><i style="background:var(--ts)"></i>Time Sinker</button>
+    <button class="chip" data-q="all" aria-pressed="true">Show all</button>
+  </div>
+
+  <main class="board" id="board" aria-label="Roadmap lanes"></main>
+
+  <section class="cutlist" aria-labelledby="cut-h">
+    <h2 id="cut-h">Cut list</h2>
+    <p class="sub">Not building these in this initiative. Select an item to see why.</p>
+    <div id="cuts"></div>
+  </section>
+
+  <footer>Sample data, illustrative, not Riverty research. All people, numbers and events are fictional. Select any card to see its scores and evidence.</footer>
+</div>
+
+<script>
+  var QUADRANTS = {
+    qw: "Quick Win",
+    mp: "Major Project",
+    fi: "Fill-In",
+    ts: "Time Sinker"
+  };
+
+  var LANES = [
+    { key: "now", title: "Now", sub: "This sprint" },
+    { key: "next", title: "Next", sub: "The following sprints" },
+    { key: "later", title: "Later", sub: "Backlog" }
+  ];
+
+  var FEATURES = [
+    {
+      id: "B2", lane: "now", q: "qw", value: 5, effort: 1,
+      name: "Plain explainer: why income is asked and how it is used",
+      why: "Mara hesitates at the income question, and this fixes it with content, not new systems.",
+      evidence: "\u201CWhy income is asked\u201D causes 16.2% of agent contacts. Interviews N-01 and N-06 show confusion and fear, and ticket T-206 confirms there is no help text.",
+      next: "Add one line on what happens after a missed payment, the top call reason at 18.6%."
+    },
+    {
+      id: "B5", lane: "now", q: "qw", value: 5, effort: 2,
+      name: "Mobile photo upload, or skip the document under a set amount",
+      why: "Most starters are on mobile, and a broken upload ends the journey before the plan review.",
+      evidence: "Ticket T-201: 853 journeys asked for a document that never arrived. 6,563 of 8,360 starters use mobile, and mobile converts at 43.8% against 54.0% on desktop.",
+      next: "Skipping the document needs compliance sign-off and should be paired with B3."
+    },
+    {
+      id: "B1", lane: "next", q: "mp", value: 5, effort: 4,
+      name: "One plan for several open claims",
+      why: "It removes Mara\u2019s biggest uncertainty, and multi-claim journeys convert far worse than single-claim ones.",
+      evidence: "Agreement rate is 52.1% with one claim, 37.7% with two and 27.6% with three or more. Agent contact rises to 40.0% and 43.0%. Ticket T-202 and interview N-03 confirm the gap.",
+      next: "Needs claim-merging logic across backends, so it does not fit in the first sprint."
+    },
+    {
+      id: "B3", lane: "next", q: "mp", value: 5, effort: 4,
+      name: "Affordability check before the plan options",
+      why: "It answers \u201Ccan I afford this?\u201D and protects the missed-payment guardrail for shift workers.",
+      evidence: "Variable or shift income misses 22.5% of payments against 17.4% for fixed salary. Interview N-02 shows a plan picked without a check, then a missed payment.",
+      next: "Use simple, explainable rules. Compliance (N-12) must be able to explain every decision to consumer and agent."
+    },
+    {
+      id: "B4", lane: "later", q: "fi", value: 3, effort: 2,
+      name: "Handoff summary for the agent",
+      why: "It saves agents repeated checks, but the consumer still calls, so it does not lift the Self-Service Rate.",
+      evidence: "Interviews N-08 and N-09 and ticket T-205: agents cannot see what was entered online or why a plan was offered.",
+      next: "Pull forward if client complaints about broken plans grow (N-10)."
+    },
+    {
+      id: "B6", lane: "later", q: "fi", value: 2, effort: 2,
+      name: "Payment date that matches pay day",
+      why: "It may help shift workers keep a plan, but no interview names pay day as a problem.",
+      evidence: "None of the 12 interview notes mention it. The real issue in N-01 is the income question itself.",
+      next: "Test only after B2 and B3 show how much risk remains."
+    }
+  ];
+
+  var CUTS = [
+    {
+      id: "B7", q: "fi", value: 1, effort: 1,
+      name: "Show the shortest plan first",
+      why: "Cheap to build, but it pushes consumers into plans they cannot keep and breaks the guardrail.",
+      evidence: "In Month 4 the 6-month plan went first: SSR rose to 33.8%, but missed payments rose from 15.6% to 18.4%. Interview N-02 shows the same pattern.",
+      next: "Out of scope. Only reconsider as an A/B test with a hard stop on the 19.0% missed-payment limit."
+    },
+    {
+      id: "B8", q: "ts", value: 2, effort: 5,
+      name: "Chat assistant on every portal page",
+      why: "Months of work for unclear value, and the current chat confirms plans without explaining a missed payment.",
+      evidence: "Chat users show a higher SSR (41.5% against 33.2%) but also more missed payments (21.6% against 18.3%), and they may be a self-selected group. Interview N-05 and ticket T-208 show the missing explanation.",
+      next: "Fix the chat answer about missed payments first, then reconsider."
+    }
+  ];
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  function meter(label, n, extra) {
+    var m = el("div", "meter " + (extra || ""));
+    m.appendChild(el("span", null, label + " " + n + " of 5"));
+    var bar = el("div", "bar");
+    for (var i = 1; i <= 5; i++) bar.appendChild(el("span", i <= n ? "on" : ""));
+    m.appendChild(bar);
+    return m;
+  }
+
+  function detailBlock(f) {
+    var d = el("div", "detail");
+    d.appendChild(el("b", null, "Evidence"));
+    d.appendChild(el("span", null, f.evidence));
+    d.appendChild(el("b", null, "Watch out"));
+    d.appendChild(el("span", null, f.next));
+    return d;
+  }
+
+  function buildCard(f, tag) {
+    var c = el(tag || "button", tag === "div" ? "" : "card");
+    c.type = "button";
+    c.setAttribute("aria-expanded", "false");
+    c.dataset.q = f.q;
+
+    var top = el("div", "top");
+    var left = el("div");
+    left.appendChild(el("div", "id", f.id));
+    left.appendChild(el("h3", null, f.name));
+    top.appendChild(left);
+    top.appendChild(el("span", "badge " + f.q, QUADRANTS[f.q]));
+    c.appendChild(top);
+
+    c.appendChild(el("p", "why", f.why));
+
+    var s = el("div", "scores");
+    s.appendChild(meter("Value", f.value));
+    s.appendChild(meter("Effort", f.effort, "effort"));
+    c.appendChild(s);
+
+    c.appendChild(detailBlock(f));
+    return c;
+  }
+
+  var board = document.getElementById("board");
+  LANES.forEach(function (l) {
+    var lane = el("section", "lane " + l.key);
+    lane.setAttribute("aria-labelledby", "h-" + l.key);
+    var h = el("h2", null, l.title);
+    h.id = "h-" + l.key;
+    lane.appendChild(h);
+    lane.appendChild(el("p", "sub", l.sub));
+    var stack = el("div", "stack");
+    FEATURES.filter(function (f) { return f.lane === l.key; }).forEach(function (f) {
+      stack.appendChild(buildCard(f));
+    });
+    lane.appendChild(stack);
+    board.appendChild(lane);
+  });
+
+  var cuts = document.getElementById("cuts");
+  CUTS.forEach(function (f) {
+    var c = el("button", "cutitem");
+    c.type = "button";
+    c.setAttribute("aria-expanded", "false");
+    var top = el("div", "top");
+    top.style.display = "flex";
+    top.style.justifyContent = "space-between";
+    top.style.gap = "10px";
+    var left = el("div");
+    left.appendChild(el("div", "id", f.id));
+    left.style.fontWeight = "700";
+    left.appendChild(el("h3", null, f.name));
+    top.appendChild(left);
+    top.appendChild(el("span", "badge " + f.q, QUADRANTS[f.q]));
+    c.appendChild(top);
+    c.appendChild(el("p", null, f.why));
+    var s = el("div", "scores");
+    s.appendChild(meter("Value", f.value));
+    s.appendChild(meter("Effort", f.effort, "effort"));
+    c.appendChild(s);
+    c.appendChild(detailBlock(f));
+    cuts.appendChild(c);
+  });
+
+  // Expand and collapse
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest(".card, .cutitem");
+    if (!t) return;
+    var open = t.getAttribute("aria-expanded") === "true";
+    t.setAttribute("aria-expanded", open ? "false" : "true");
+  });
+
+  // Filter by quadrant
+  var chips = document.querySelectorAll(".chip");
+  chips.forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      var q = chip.dataset.q;
+      chips.forEach(function (c) { c.setAttribute("aria-pressed", c === chip ? "true" : "false"); });
+      document.querySelectorAll(".card").forEach(function (card) {
+        card.classList.toggle("dim", q !== "all" && card.dataset.q !== q);
+      });
+    });
+  });
+</script>
+</body>
+</html>
